@@ -109,7 +109,16 @@ dependencies {
     implementation 'org.greenrobot:eventbus:3.2.0'
     implementation 'com.orhanobut:hawk:2.0.1'
 
-    implementation project(":player")
+    implementation "androidx.annotation:annotation:1.3.0"
+    implementation "com.google.android.exoplayer:exoplayer-core:" + rootProject.ext.exoVersion
+    implementation "com.google.android.exoplayer:exoplayer-dash:" + rootProject.ext.exoVersion
+    implementation "com.google.android.exoplayer:exoplayer-hls:" + rootProject.ext.exoVersion
+    implementation "com.google.android.exoplayer:exoplayer-rtsp:" + rootProject.ext.exoVersion
+    implementation "com.google.android.exoplayer:extension-rtmp:" + rootProject.ext.exoVersion
+    //implementation 'com.google.android.exoplayer:extension-okhttp:' + rootProject.ext.exoVersion
+
+    implementation 'xyz.doikki.android.dkplayer:dkplayer-ui:3.3.5'
+
     implementation project(":quickjs")
 
     implementation('org.xwalk:xwalk_shared_library:23.53.589.4') {

@@ -1,7 +1,6 @@
 package com.github.tvbox.osc.util;
 
 import android.net.Uri;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Pattern;
@@ -143,7 +142,5 @@ public class VideoParseRuler {
         }
         return isFilter;
     }
-
-
 
 }

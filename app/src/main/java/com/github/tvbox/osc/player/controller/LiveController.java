@@ -33,7 +33,7 @@ public class LiveController extends BaseController {
     }
 
     public interface LiveControlListener {
-        boolean singleTap();
+        boolean singleTap(MotionEvent e);
 
         void longPress();
 
@@ -50,7 +50,7 @@ public class LiveController extends BaseController {
 
     @Override
     public boolean onSingleTapConfirmed(MotionEvent e) {
-        if (listener.singleTap())
+        if (listener.singleTap(e))
             return true;
         return super.onSingleTapConfirmed(e);
     }

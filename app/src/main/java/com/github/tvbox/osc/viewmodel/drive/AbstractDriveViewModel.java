@@ -38,8 +38,6 @@ public abstract class AbstractDriveViewModel extends ViewModel {
 
     public abstract String loadData(LoadDataCallback callback);
 
-    public abstract Runnable search(String keyword, LoadDataCallback callback);
-
     protected void sortData(List<DriveFolderFile> data) {
         DriveFolderFile backItem = null;
         if (data.size() > 0 && data.get(0).name == null)
@@ -49,7 +47,7 @@ public abstract class AbstractDriveViewModel extends ViewModel {
             data.add(0, backItem);
     }
 
-    private Comparator<DriveFolderFile> sortComparator = new Comparator<DriveFolderFile>() {
+    private final Comparator<DriveFolderFile> sortComparator = new Comparator<DriveFolderFile>() {
         @Override
         public int compare(DriveFolderFile o1, DriveFolderFile o2) {
             switch (sortType) {

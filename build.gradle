@@ -25,6 +25,10 @@ allprojects {
     }
 }
 
+ext {
+    exoVersion = "2.16.0"
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

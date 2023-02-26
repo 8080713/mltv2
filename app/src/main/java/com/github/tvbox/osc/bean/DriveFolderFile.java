@@ -18,6 +18,7 @@ import java.util.Locale;
 public class DriveFolderFile {
     public DriveFolderFile parentFolder;
     public String name;
+    public int version = 0;
     public boolean isFile;
     public String fileType;
     private StorageDrive driveData;
@@ -25,7 +26,7 @@ public class DriveFolderFile {
     public boolean isSelected;
     public boolean isDelMode;
     public String fileUrl;
-    private String[] accessingPath;
+    private String[] accessingPath = new String[0];
     private List<DriveFolderFile> children;
     private JsonObject config;
 
@@ -36,8 +37,7 @@ public class DriveFolderFile {
             this.config = JsonParser.parseString(driveData.configJson).getAsJsonObject();
     }
 
-    public DriveFolderFile(DriveFolderFile parent, String name, boolean isFile, String fileType, Long lastModifiedDate) {
-        accessingPath = new String[0];
+    public DriveFolderFile(DriveFolderFile parent, String name, int version, boolean isFile, String fileType, Long lastModifiedDate) {
         if(parent != null) {
             LinkedList<String> path = new LinkedList<>();
             DriveFolderFile currentParent = parent;
@@ -45,10 +45,11 @@ public class DriveFolderFile {
                 path.add(0, currentParent.name);
                 currentParent = currentParent.parentFolder;
             }
-            accessingPath = path.toArray(accessingPath);
+            accessingPath = path.toArray(new String[path.size()]);
         }
         this.parentFolder = parent;
         this.name = name;
+        this.version = version;
         this.isFile = isFile;
         if(fileType != null)
             this.fileType = fileType.toUpperCase(Locale.ROOT);

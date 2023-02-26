@@ -1,6 +1,7 @@
 package com.github.tvbox.osc.ui.activity;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -44,6 +45,7 @@ import com.obsez.android.lib.filechooser.ChooserDialog;
 import com.orhanobut.hawk.Hawk;
 import com.owen.tvrecyclerview.widget.TvRecyclerView;
 import com.owen.tvrecyclerview.widget.V7LinearLayoutManager;
+import com.github.tvbox.quickjs.JSUtils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -58,9 +60,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import me.jessyan.autosize.utils.AutoSizeUtils;
 
@@ -77,18 +76,10 @@ public class DriveActivity extends BaseActivity {
     private AbstractDriveViewModel viewModel = null;
     private AbstractDriveViewModel backupViewModel = null;
     private int sortType = 0;
-    private ExecutorService searchExecutorService = null;
-    private AtomicInteger allSearchCount = new AtomicInteger(0);
     private View footLoading;
     private boolean isInSearch = false;
 
-    private boolean isRight;
-    private boolean sortChange = false;
-
-    private int currentSelected = 0;
-    private int sortFocused = 0;
     private boolean delMode = false;
-    public View sortFocusView = null;
 
     private Handler mHandler = new Handler();
 
@@ -105,7 +96,6 @@ public class DriveActivity extends BaseActivity {
 
     private void initView() {
         EventBus.getDefault().register(this);
-        searchExecutorService = Executors.newFixedThreadPool(5);
         this.txtTitle = findViewById(R.id.textView);
         this.btnAddServer = findViewById(R.id.btnAddServer);
         this.mGridView = findViewById(R.id.mGridView);
@@ -208,6 +198,7 @@ public class DriveActivity extends BaseActivity {
                 btnAddServer.setVisibility(View.GONE);
                 btnRemoveServer.setVisibility(View.GONE);
                 DriveFolderFile selectedItem = DriveActivity.this.adapter.getItem(position);
+
                 if ((selectedItem == selectedItem.parentFolder || selectedItem.parentFolder == null) && selectedItem.name == null) {
                     returnPreviousFolder();
                     return;
@@ -226,6 +217,7 @@ public class DriveActivity extends BaseActivity {
                         return;
                     }
                 }
+
                 if (!selectedItem.isFile) {
                     viewModel.setCurrentDriveNote(selectedItem);
                     loadDriveData();
@@ -241,6 +233,7 @@ public class DriveActivity extends BaseActivity {
                             playFile(config.get("url").getAsString() + targetPath);
                         } else if (currentDrive.getDriveType() == StorageDriveType.TYPE.ALISTWEB) {
                             AlistDriveViewModel boxedViewModel = (AlistDriveViewModel) viewModel;
+
                             boxedViewModel.loadFile(selectedItem, new AlistDriveViewModel.LoadFileCallback() {
                                 @Override
                                 public void callback(String fileUrl) {
@@ -306,7 +299,7 @@ public class DriveActivity extends BaseActivity {
     }
 
     private void openSortDialog() {
-        List<String> options = Arrays.asList(new String[]{"按名字升序", "按名字降序", "按修改时间升序", "按修改时间降序"});
+        List<String> options = Arrays.asList("按名字升序", "按名字降序", "按修改时间升序", "按修改时间降序");
         int sort = Hawk.get(HawkConfig.STORAGE_DRIVE_SORT, 0);
         SelectDialog<String> dialog = new SelectDialog<>(DriveActivity.this);
         dialog.setTip("请选择列表排序方式");
@@ -365,18 +358,31 @@ public class DriveActivity extends BaseActivity {
                         }
                         RoomDataManger.insertDriveRecord(absPath, StorageDriveType.TYPE.LOCAL, null);
                         EventBus.getDefault().post(new RefreshEvent(RefreshEvent.TYPE_DRIVE_REFRESH));
-                        return;
                     }
                 }).show();
     }
 
     private void openWebdavDialog(StorageDrive drive) {
         WebdavDialog webdavDialog = new WebdavDialog(mContext, drive);
+        EventBus.getDefault().register(webdavDialog);
+        webdavDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                EventBus.getDefault().unregister(dialog);
+            }
+        });
         webdavDialog.show();
     }
 
     private void openAlistDriveDialog(StorageDrive drive) {
         AlistDriveDialog dialog = new AlistDriveDialog(mContext, drive);
+        EventBus.getDefault().register(dialog);
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                EventBus.getDefault().unregister(dialog);
+            }
+        });
         dialog.show();
     }
 
@@ -459,6 +465,7 @@ public class DriveActivity extends BaseActivity {
             @Override
             public void fail(String message) {
                 showSuccess();
+                viewModel = null;
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
@@ -467,82 +474,9 @@ public class DriveActivity extends BaseActivity {
                 });
             }
         });
-        this.txtTitle.setText(path);
-    }
-
-    private void search(String keyword) {
-        isInSearch = true;
-        backupViewModel = viewModel;
-        viewModel = null;
-        btnSort.setVisibility(View.GONE);
-        showLoading();
-        List<AbstractDriveViewModel> viewModels = new ArrayList<>();
-        if (viewModel != null)
-            viewModels.add(viewModel);
-        else {
-            for (DriveFolderFile drive : drives) {
-                AbstractDriveViewModel searchViewModel = null;
-                if (drive.getDriveType() == StorageDriveType.TYPE.LOCAL)
-                    searchViewModel = new LocalDriveViewModel();
-                else if (drive.getDriveType() == StorageDriveType.TYPE.WEBDAV)
-                    searchViewModel = new WebDAVDriveViewModel();
-                else if (drive.getDriveType() == StorageDriveType.TYPE.ALISTWEB)
-                    searchViewModel = new AlistDriveViewModel();
-                if (searchViewModel != null) {
-                    allSearchCount.incrementAndGet();
-                    searchViewModel.setCurrentDrive(drive);
-                    viewModels.add(searchViewModel);
-                }
-            }
+        if(JSUtils.isNotEmpty(path)) {
+            this.txtTitle.setText(path);
         }
-        searchResult = new ArrayList<>();
-        DriveFolderFile backItem = new DriveFolderFile(null, null, false, null, null);
-        backItem.parentFolder = backItem;
-        searchResult.add(0, backItem);
-        adapter.setNewData(searchResult);
-        adapter.setFooterView(footLoading);
-        Object syncLocker = new Object();
-        for (AbstractDriveViewModel searchViewModel : viewModels) {
-            Runnable runnable = searchViewModel.search(keyword, new AbstractDriveViewModel.LoadDataCallback() {
-                @Override
-                public void callback(List<DriveFolderFile> list, boolean alreadyHasChildren) {
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            synchronized (syncLocker) {
-                                try {
-                                    showSuccess();
-                                    int count = allSearchCount.decrementAndGet();
-                                    if (count <= 0) {
-                                        //Toast.makeText(mContext, "搜索完毕！", Toast.LENGTH_SHORT).show();
-                                        adapter.removeFooterView(footLoading);
-                                    }
-                                    if (list != null) {
-                                        searchResult.addAll(list);
-                                        adapter.notifyDataSetChanged();
-                                    }
-                                } catch (Exception ex) {
-                                    ex.printStackTrace();
-                                }
-                            }
-                        }
-                    });
-                }
-
-                @Override
-                public void fail(String message) {
-                    showSuccess();
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            });
-            searchExecutorService.execute(runnable);
-        }
-        this.txtTitle.setText("搜索结果");
     }
 
     private void cancel() {

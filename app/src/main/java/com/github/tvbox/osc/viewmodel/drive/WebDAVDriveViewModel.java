@@ -41,7 +41,7 @@ public class WebDAVDriveViewModel extends AbstractDriveViewModel {
         JsonObject config = currentDrive.getConfig();
         if (currentDriveNote == null) {
             currentDriveNote = new DriveFolderFile(null,
-                    config.has("initPath") ? config.get("initPath").getAsString() : "", false, null, null);
+                    config.has("initPath") ? config.get("initPath").getAsString() : "", 0, false, null, null);
         }
         String targetPath = currentDriveNote.getAccessingPathStr() + currentDriveNote.name;
         if (currentDriveNote.getChildren() == null) {
@@ -67,14 +67,14 @@ public class WebDAVDriveViewModel extends AbstractDriveViewModel {
                             if (targetPath != "" && file.getPath().toUpperCase(Locale.ROOT).endsWith(targetPath.toUpperCase(Locale.ROOT) + "/"))
                                 continue;
                             int extNameStartIndex = file.getName().lastIndexOf(".");
-                            items.add(new DriveFolderFile(currentDriveNote, file.getName(), !file.isDirectory(),
+                            items.add(new DriveFolderFile(currentDriveNote, file.getName(), 0, !file.isDirectory(),
                                     !file.isDirectory() && extNameStartIndex >= 0 && extNameStartIndex < file.getName().length() ?
                                             file.getName().substring(extNameStartIndex + 1) : null,
                                     file.getModified().getTime()));
                         }
                     }
                     sortData(items);
-                    DriveFolderFile backItem = new DriveFolderFile(null, null, false, null, null);
+                    DriveFolderFile backItem = new DriveFolderFile(null, null, 0, false, null, null);
                     backItem.parentFolder = backItem;
                     items.add(0, backItem);
                     currentDriveNote.setChildren(items);
@@ -92,15 +92,4 @@ public class WebDAVDriveViewModel extends AbstractDriveViewModel {
         return targetPath;
     }
 
-    @Override
-    public Runnable search(String keyword, LoadDataCallback callback) {
-        //not implemented yet
-        return new Runnable() {
-            @Override
-            public void run() {
-                if (callback != null)
-                    callback.callback(null, false);
-            }
-        };
-    }
 }
