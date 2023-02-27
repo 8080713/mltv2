@@ -89,7 +89,7 @@ public class CheckboxSearchAdapter extends ListAdapter<SourceBean, CheckboxSearc
 
         public ViewHolder(View view) {
             super(view);
-            oneSearchSource = (CheckBox) view.findViewById(R.id.oneSearchSource);
+            oneSearchSource = view.findViewById(R.id.oneSearchSource);
         }
     }
 

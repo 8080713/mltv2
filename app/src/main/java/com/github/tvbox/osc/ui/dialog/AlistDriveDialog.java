@@ -11,12 +11,15 @@ import androidx.annotation.NonNull;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.cache.RoomDataManger;
 import com.github.tvbox.osc.cache.StorageDrive;
+import com.github.tvbox.osc.event.InputMsgEvent;
 import com.github.tvbox.osc.event.RefreshEvent;
 import com.github.tvbox.osc.util.StorageDriveType;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.jetbrains.annotations.NotNull;
 
 public class AlistDriveDialog extends BaseDialog {
@@ -41,6 +44,8 @@ public class AlistDriveDialog extends BaseDialog {
         etUrl = findViewById(R.id.etUrl);
         etInitPath = findViewById(R.id.etInitPath);
         etPassword = findViewById(R.id.etPassword);
+        etName.setFocusableInTouchMode(true);
+        etName.requestFocus();
         if(drive != null) {
             etName.setText(drive.name);
             try {
@@ -101,4 +106,12 @@ public class AlistDriveDialog extends BaseDialog {
             etField.setText(config.get(fieldName).getAsString());
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onInputMsgEvent(InputMsgEvent inputMsgEvent) {
+        View vFocus = this.getWindow().getDecorView().findFocus();
+        if(vFocus instanceof EditText)
+        {
+            ((EditText) vFocus).setText(inputMsgEvent.getText());
+        }
+    }
 }
