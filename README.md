@@ -25,3 +25,7 @@
 - 直播 (Optional) > 输入Live URL（http）地址.如果为空,将从源文件获取Live URL,
 - EPG (Optional) > 输入EPG URL（http）地址.如果为空,将从源文件中获取EPG URL,
 - 默认EPG > default from http://epg.51zmt.top:8000/api/diyp/
+
+![1683856638954](https://github.com/8080713/mltv2/assets/121084065/8a4e8592-ce7a-4889-852a-9189ac79ac19)
+
+![1683856646724](https://github.com/8080713/mltv2/assets/121084065/a397c137-55d1-48e3-8f2b-f1f566953f7a)
